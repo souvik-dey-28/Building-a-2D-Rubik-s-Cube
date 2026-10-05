@@ -43,6 +43,7 @@ The UI is divided into the three spatial axes of the cube:
 
 ## 👨‍💻 Author
 
-**Souvik Dey**
+**Souvik Dey** <!--
 * B.Tech Information Technology
 * [Link to your Portfolio/LinkedIn]
+-->
