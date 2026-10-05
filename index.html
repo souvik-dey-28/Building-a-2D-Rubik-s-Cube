@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Rubik's Cube Simulator</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #f8fafc;
+            --btn-bg: #334155;
+            --btn-hover: #475569;
+            --accent: #38bdf8;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            user-select: none;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 700px;
+            margin-bottom: 15px;
+        }
+        .stats {
+            font-size: 20px;
+            font-weight: bold;
+            background: var(--panel);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .top-controls button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .top-controls button.reset { background: #3b82f6; }
+        .top-controls button:hover { opacity: 0.9; }
+
+        canvas {
+            background-color: #020617;
+            border-radius: 50%;
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.15);
+            margin-bottom: 25px;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 700px;
+        }
+        .axis-panel {
+            background: var(--panel);
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border: 1px solid #334155;
+        }
+        .axis-title {
+            text-align: center;
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+        .row span {
+            font-weight: bold;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .btn-group { display: flex; gap: 5px; }
+        button.spin-btn {
+            background: var(--btn-bg);
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+        button.spin-btn:hover { background: var(--btn-hover); }
+        .full-spin { margin-top: 5px; }
+        .full-spin button { width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="stats">Moves: <span id="moveCount">0</span></div>
+        <div class="top-controls">
+            <button class="reset" onclick="resetCube()">Reset to Solved</button>
+            <button onclick="scramble()">Scramble</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    
+    <div class="controls">
+        <!-- Lobe 1 (Bottom Left) -> X Axis -->
+        <div class="axis-panel">
+            <div class="axis-title">X-Axis (Left / Right)</div>
+            <div class="row"><span>Outer (L)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(1, [2], -1)">↺</button><button class="spin-btn" onclick="spin(1, [2], 1)">↻</button></div></div>
+            <div class="row"><span>Mid (M)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(1, [1], -1)">↺</button><button class="spin-btn" onclick="spin(1, [1], 1)">↻</button></div></div>
+            <div class="row"><span>Inner (R)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(1, [0], -1)">↺</button><button class="spin-btn" onclick="spin(1, [0], 1)">↻</button></div></div>
+            <div class="btn-group full-spin"><button class="spin-btn" onclick="spin(1, [0,1,2], -1)">↺ Whole Block ↻</button><button class="spin-btn" onclick="spin(1, [0,1,2], 1)">↻</button></div>
+        </div>
+
+        <!-- Lobe 0 (Top) -> Y Axis -->
+        <div class="axis-panel">
+            <div class="axis-title">Y-Axis (Up / Down)</div>
+            <div class="row"><span>Outer (U)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(0, [2], -1)">↺</button><button class="spin-btn" onclick="spin(0, [2], 1)">↻</button></div></div>
+            <div class="row"><span>Mid (E)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(0, [1], -1)">↺</button><button class="spin-btn" onclick="spin(0, [1], 1)">↻</button></div></div>
+            <div class="row"><span>Inner (D)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(0, [0], -1)">↺</button><button class="spin-btn" onclick="spin(0, [0], 1)">↻</button></div></div>
+            <div class="btn-group full-spin"><button class="spin-btn" onclick="spin(0, [0,1,2], -1)">↺ Whole Block ↻</button><button class="spin-btn" onclick="spin(0, [0,1,2], 1)">↻</button></div>
+        </div>
+
+        <!-- Lobe 2 (Bottom Right) -> Z Axis -->
+        <div class="axis-panel">
+            <div class="axis-title">Z-Axis (Front / Back)</div>
+            <div class="row"><span>Outer (F)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(2, [2], -1)">↺</button><button class="spin-btn" onclick="spin(2, [2], 1)">↻</button></div></div>
+            <div class="row"><span>Mid (S)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(2, [1], -1)">↺</button><button class="spin-btn" onclick="spin(2, [1], 1)">↻</button></div></div>
+            <div class="row"><span>Inner (B)</span> <div class="btn-group"><button class="spin-btn" onclick="spin(2, [0], -1)">↺</button><button class="spin-btn" onclick="spin(2, [0], 1)">↻</button></div></div>
+            <div class="btn-group full-spin"><button class="spin-btn" onclick="spin(2, [0,1,2], -1)">↺ Whole Block ↻</button><button class="spin-btn" onclick="spin(2, [0,1,2], 1)">↻</button></div>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const ORIGIN = { x: 300, y: 300 };
+    const D = 90; 
+    const R = [105, 135, 165]; // Inner, Middle, Outer rings
+
+    const centers = [
+        { x: ORIGIN.x, y: ORIGIN.y - D },
+        { x: ORIGIN.x - D * 0.866, y: ORIGIN.y + D * 0.5 },
+        { x: ORIGIN.x + D * 0.866, y: ORIGIN.y + D * 0.5 }
+    ];
+
+    const faceColors = ['#00cc00', '#00ffff', '#ff0000', '#0000ff', '#ffff00', '#ff00ff'];
+    
+    let slots = []; 
+    let beads = []; 
+    let lobeTracks = [[[],[],[]], [[],[],[]], [[],[],[]]];
+    let isAnimating = false;
+    let moveCount = 0;
+
+    function getIntersections(cA, rA, cB, rB, getInner) {
+        let dx = cB.x - cA.x, dy = cB.y - cA.y;
+        let d = Math.hypot(dx, dy);
+        let a = (rA * rA - rB * rB + d * d) / (2 * d);
+        let h = Math.sqrt(Math.abs(rA * rA - a * a));
+        let xm = cA.x + a * dx / d, ym = cA.y + a * dy / d;
+        let p1 = {x: xm + h * dy / d, y: ym - h * dx / d};
+        let p2 = {x: xm - h * dy / d, y: ym + h * dx / d};
+        let d1 = Math.hypot(p1.x - ORIGIN.x, p1.y - ORIGIN.y);
+        let d2 = Math.hypot(p2.x - ORIGIN.x, p2.y - ORIGIN.y);
+        return getInner ? (d1 < d2 ? p1 : p2) : (d1 > d2 ? p1 : p2);
+    }
+
+    function initGraph() {
+        slots = [];
+        lobeTracks = [[[],[],[]], [[],[],[]], [[],[],[]]];
+        let id = 0;
+        const pairs = [[0,1], [0,2], [1,2]]; 
+
+        pairs.forEach((pair, pairIdx) => {
+            let lA = pair[0], lB = pair[1];
+            for(let i=0; i<3; i++) {
+                for(let j=0; j<3; j++) {
+                    let innerPt = getIntersections(centers[lA], R[i], centers[lB], R[j], true);
+                    slots.push({ id: id++, x: innerPt.x, y: innerPt.y, color: faceColors[pairIdx * 2] });
+                    
+                    let outerPt = getIntersections(centers[lA], R[i], centers[lB], R[j], false);
+                    slots.push({ id: id++, x: outerPt.x, y: outerPt.y, color: faceColors[pairIdx * 2 + 1] });
+                }
+            }
+        });
+
+        slots.forEach(slot => {
+            centers.forEach((c, lobeIdx) => {
+                let d = Math.hypot(slot.x - c.x, slot.y - c.y);
+                R.forEach((r, ringIdx) => {
+                    if (Math.abs(d - r) < 2.0) {
+                        lobeTracks[lobeIdx][ringIdx].push({
+                            slotId: slot.id,
+                            angle: Math.atan2(slot.y - c.y, slot.x - c.x)
+                        });
+                    }
+                });
+            });
+        });
+
+        for(let l=0; l<3; l++) {
+            for(let r=0; r<3; r++) {
+                lobeTracks[l][r].sort((a, b) => a.angle - b.angle);
+            }
+        }
+
+        beads = slots.map(slot => ({
+            slotId: slot.id,
+            color: slot.color,
+            drawX: slot.x,
+            drawY: slot.y
+        }));
+    }
+
+    // Core function now accepts specific rings array (e.g. [0] for inner, [0,1,2] for full lobe)
+    function spin(lobeIdx, ringsToSpin, direction, instant = false) {
+        if (isAnimating) return;
+        let c = centers[lobeIdx];
+        let moves = [];
+        
+        ringsToSpin.forEach(r => {
+            let track = lobeTracks[lobeIdx][r];
+            let N = track.length; 
+            let shift = 3 * direction; // 90-degree Rubik's turn
+            
+            for(let i=0; i<N; i++) {
+                let fromSlotId = track[i].slotId;
+                let toIdx = (i + shift + N * 10) % N;
+                let toSlotId = track[toIdx].slotId;
+                let bead = beads.find(b => b.slotId === fromSlotId);
+                
+                let a1 = track[i].angle;
+                let a2 = track[toIdx].angle;
+                let diff = a2 - a1;
+                if (direction === 1) {
+                    while(diff <= 0) diff += Math.PI * 2;
+                } else {
+                    while(diff >= 0) diff -= Math.PI * 2;
+                }
+                
+                moves.push({ bead: bead, targetId: toSlotId, startA: a1, delta: diff, radius: R[r] });
+            }
+        });
+        
+        if (!instant) {
+            moveCount++;
+            document.getElementById('moveCount').innerText = moveCount;
+        }
+
+        if (instant) {
+            moves.forEach(m => {
+                m.bead.slotId = m.targetId;
+                m.bead.drawX = slots[m.targetId].x;
+                m.bead.drawY = slots[m.targetId].y;
+            });
+        } else {
+            animateMoves(moves, c);
+        }
+    }
+
+    function animateMoves(moves, center) {
+        isAnimating = true;
+        let startTime = performance.now();
+        let duration = 300; 
+        
+        function step(time) {
+            let p = Math.min((time - startTime) / duration, 1.0);
+            let ease = p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p; 
+            
+            moves.forEach(m => {
+                let currentAngle = m.startA + m.delta * ease;
+                m.bead.drawX = center.x + Math.cos(currentAngle) * m.radius;
+                m.bead.drawY = center.y + Math.sin(currentAngle) * m.radius;
+            });
+            
+            if (p < 1.0) {
+                requestAnimationFrame(step);
+            } else {
+                moves.forEach(m => {
+                    m.bead.slotId = m.targetId;
+                    m.bead.drawX = slots[m.targetId].x;
+                    m.bead.drawY = slots[m.targetId].y;
+                });
+                isAnimating = false;
+            }
+        }
+        requestAnimationFrame(step);
+    }
+
+    function scramble() {
+        if (isAnimating) return;
+        moveCount = 0;
+        document.getElementById('moveCount').innerText = moveCount;
+        
+        for(let k = 0; k < 25; k++) {
+            // Randomly select a single slice (0, 1, or 2) on a random lobe
+            let randLobe = Math.floor(Math.random() * 3);
+            let randRing = Math.floor(Math.random() * 3);
+            let randDir = Math.random() > 0.5 ? 1 : -1;
+            spin(randLobe, [randRing], randDir, true);
+        }
+    }
+
+    function resetCube() {
+        if (isAnimating) return;
+        moveCount = 0;
+        document.getElementById('moveCount').innerText = moveCount;
+        initGraph();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the 9 Tracks
+        centers.forEach(c => {
+            R.forEach(r => {
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            });
+        });
+
+        // Draw the 54 Beads
+        beads.forEach(bead => {
+            ctx.beginPath();
+            ctx.arc(bead.drawX, bead.drawY, 9, 0, Math.PI * 2);
+            ctx.fillStyle = bead.color;
+            ctx.fill();
+            
+            // Add subtle glossy highlight
+            ctx.beginPath();
+            ctx.arc(bead.drawX - 2.5, bead.drawY - 2.5, 2.5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    initGraph();
+    draw();
+</script>
+</body>
+</html>
