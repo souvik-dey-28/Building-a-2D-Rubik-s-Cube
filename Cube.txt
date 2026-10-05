@@ -1,0 +1,18 @@
+It’s actually a 2D Planar Model of a 3x3 Rubik's Cube!
+
+When we try to learn a Rubik's Cube in 3D, keeping track of hidden faces on the back or bottom is often the hardest part. Flattening the entire permutation group onto intersecting 2D circular tracks lays all 54 stickers out in plain sight—making it significantly easier to visualize how face rotations and slice moves transfer pieces across the entire system.
+
+I turned this concept into a playable browser app using pure Vanilla JavaScript, HTML5 Canvas, and CSS:
+- Zero frameworks or heavy engines—just raw mathematics and canvas rendering.
+- 9 concentric tracks (3 x 3) mapping independent slice rotations for all axes (U/E/D, L/M/R, F/S/B).
+- Live Scrambler & Move Counter to test your solving strategies in 2D.
+
+Give it a spin directly in your browser:
+🔗 Live Demo: https://souvik-dey-28.github.io/Building-a-2D-Rubik-s-Cube/
+📂 GitHub Repo: https://github.com/souvik-dey-28/Building-a-2D-Rubik-s-Cube
+
+If you enjoy mathematical visualizations, creative web projects, or unique puzzles, feel free to star the repo, follow on GitHub, or connect here on LinkedIn! 🚀
+
+What do you think—is solving it in 2D easier or does it twist your brain even more? Drop your thoughts below! 👇
+
+#JavaScript #WebDevelopment #Mathematics #Algorithms #HTML5Canvas #CreativeCoding #OpenSource #FrontendDevelopment #RubiksCube #GameDevelopment
